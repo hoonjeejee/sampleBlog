@@ -1,0 +1,22 @@
+{
+  "name": "blog-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "debug": "^4.1.1",
+    "esm": "^3.2.25",
+    "koa": "^2.11.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-router": "^7.4.0",
+    "nodemon": "^2.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node -r esm src/",
+    "start:dev": "set DEBUG=app:* & nodemon --watch src/ -r esm src/index.js"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC"
+}
