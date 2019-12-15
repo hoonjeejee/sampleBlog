@@ -1,12 +1,12 @@
+import Auth from "./auth.model";
 import Debug from "debug";
 import MariaDb from "../../lib/mariadb";
 
 const debug = new Debug("app:auth.ctrl");
 
-
 // 회원가입
-export const register = async ctx => {
-   //export const register = async ctx => {
+export const register = async function(ctx) {
+  //export const register = async ctx => {
   // Todo ,  joi로 유효성 검사
   // const schema = Joi.object().keys({
   //   username: Joi.string()
@@ -34,7 +34,7 @@ export const register = async ctx => {
     // username 존재여부 확인
     sql = "select username from user where username = ? ";
 
-    const exists = await MariaDb.query(sql, [username]);
+    const exists = await this.MariaDb.query(sql, [username]);
 
     if (exists) {
       ctx.status = 409; //  Conflict
@@ -50,7 +50,7 @@ export const register = async ctx => {
 
     ctx.body = data;
   } catch (err) {
-    ctx.throw(500, err);
+    ctx.throw(500, e);
   }
 };
 
@@ -60,7 +60,7 @@ export const login = async ctx => {
 };
 
 // 로그인 상태 확인
-export const check = async ctx => {ctx.body = "로그인 상태 확인";};
+export const check = async ctx => {};
 
 // 로그아웃
-export const logout = async ctx => {ctx.body = "로그아웃";};
+export const logout = async ctx => {};

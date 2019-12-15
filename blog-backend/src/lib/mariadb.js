@@ -60,7 +60,7 @@ class MariaDb {
       const db = await connectionPool.getConnection();
       return db;
     } catch (err) {
-      debug("connect : " + error);
+      debug("connect : " + err);
     }
   }
 
@@ -69,8 +69,8 @@ class MariaDb {
    *
    * @returns Objects with host, user, password, database properties.
    */
-  static async connectionParams(sql, values) {
-    try {
+  static connectionParams() {
+    //try {
       // .env파일에 DB_MYSQL_CONNECTION 항목을 가지고 온다.
       const connectionString = process.env.DB_MYSQL_CONNECTION;
       if (!connectionString)
@@ -116,15 +116,16 @@ class MariaDb {
        *       result; // ['홀수', '짝수', '홀수']
        */
       const dbConfig = dbConfigKeyVal.reduce((config, v) => {
-        config[v[0].toLowerCase] = v[1];
+        config[v[0].toLowerCase()] = v[1];
         return config;
       }, {});
 
       return dbConfig;
-    } catch (err) {
-      debug("connetionParams : " + error);
-    }
+    // } catch (err) {
+    //   debug("connetionParams : " + err);
+    // }
   }
+
 }
 ///// MariaDb 여기까지
 
@@ -166,12 +167,8 @@ async function setupConnectionPool() {
      *      queueLimit: 0
      *   });
      */
-    connectionPool = mysql.createPool(dbConfig);
 
-    debug(
-      "MysqlDb.setupConnectionPool",
-      `connect to ${dbConfig.host}/${dbConfig.database}`
-    );
+    connectionPool = mysql.createPool(dbConfig);
 
     /*
      *  TRADITIONAL(기본적인 제약사항에 대한 처리를 모두 가지고 있다.)
@@ -185,8 +182,9 @@ async function setupConnectionPool() {
      *    http://www.mysqlkorea.com/sub.html?mcode=manual&scode=01&m_no=21330&cat1=5&cat2=120&cat3=138&lang=k
      */
     await connectionPool.query('SET SESSION sql_mode="TRADITIONAL"');
+    debug("-------------11");
   } catch (err) {
-    debug("setupConnectionPool : " + error);
+    debug("setupConnectionPool : " + err);
   }
 }
 
