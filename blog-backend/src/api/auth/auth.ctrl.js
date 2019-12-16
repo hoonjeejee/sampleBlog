@@ -1,54 +1,51 @@
 import Debug from "debug";
+import Joi from "joi";
 import MariaDb from "../../lib/mariadb";
+import * as userModel from "../../model/user.js";
 
 const debug = new Debug("app:auth.ctrl");
 
-
 // 회원가입
 export const register = async ctx => {
-   //export const register = async ctx => {
-  // Todo ,  joi로 유효성 검사
-  // const schema = Joi.object().keys({
-  //   username: Joi.string()
-  //     .alpahnum()
-  //     .min(3)
-  //     .max(20)
-  //     .required(),
-  //   password: Joi.string().required()
-  // });
+  //joi로 유효성 검사
+  const schema = Joi.object().keys({
+    username: Joi.string()
+      .alphanum()
+      .min(3)
+      .max(20)
+      .required(),
+    password: Joi.string().required()
+  });
 
-  // const result = Joi.validate(ctx.request.body, schema);
+  const result = Joi.validate(ctx.request.body, schema);
 
-  // if (result.error) {
-  //   ctx.status = 400;
-  //   ctx.body = result.error;
-  //   return;
-  // }
+  if (result.error) {
+    ctx.status = 400;
+    ctx.body = result.error;
+    return;
+  }
 
+  // 데이터 존재여부확인 > 비밀번호암호화 > 저장
   const { username, password } = ctx.request.body;
 
   let sql = "";
   let temp = "";
-
   try {
     // username 존재여부 확인
-    sql = "select username from user where username = ? ";
+    const user = await userModel.findByUsername(username);
 
-    const exists = await MariaDb.query(sql, [username]);
-
-    if (exists) {
+    if (user) {
       ctx.status = 409; //  Conflict
       return;
     }
-
     // todo  비밀번호 암호화
-    // todo  username,password  저장
-    sql = " insert into user (username, password)  into ( ? ,? ) ";
-    temp = await MariaDb.query(sql, [username, password]);
-    debug("temp : " + temp);
-    // todo 응답할 데이터에서 hashedPassword 필드제거 ... --> 이거 필요한가?
+    const cryptedPassword = await userModel.setPassword(password);
 
-    ctx.body = data;
+    // 회원정보 저장
+    sql = " insert into user (username, password)  values ( ? ,? ) ";
+    temp = await MariaDb.query(sql, [username, cryptedPassword]);
+
+    ctx.body = `${username} 님, 가입되셨습니다.`;
   } catch (err) {
     ctx.throw(500, err);
   }
@@ -56,11 +53,40 @@ export const register = async ctx => {
 
 // 로그인
 export const login = async ctx => {
-  ctx.body = "로그인";
+  const { username, password } = ctx.request.body;
+
+  if (!username || !password) {
+    ctx.status = 401; // Unauthorized
+    return;
+  }
+
+  try {
+    const user = await userModel.findByUsername(username);
+
+    if (!user) {
+      ctx.status = 401; // Unauthorized
+      return;
+    }
+
+    const valid = await userModel.checkPassword(password);
+
+    if (!valid) {
+      ctx.status = 401; // Unauthorized
+      return;
+    }
+
+    ctx.body = user;
+  } catch (err) {
+    ctx.throw(500, err);
+  }
 };
 
 // 로그인 상태 확인
-export const check = async ctx => {ctx.body = "로그인 상태 확인";};
+export const check = async ctx => {
+  ctx.body = "로그인 상태 확인";
+};
 
 // 로그아웃
-export const logout = async ctx => {ctx.body = "로그아웃";};
+export const logout = async ctx => {
+  ctx.body = "로그아웃";
+};
